@@ -1,0 +1,14 @@
+[Unit]
+Description=Bilim Kutubxonasi Telegram Bot (24/7)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/bilim_kutubxonasi
+ExecStart=/usr/bin/python3 /root/bilim_kutubxonasi/main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

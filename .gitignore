@@ -1,0 +1,18 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Database (optional for git)
+database/*.db
+
+# Media uploads
+media/books/*
+!media/books/.gitkeep
