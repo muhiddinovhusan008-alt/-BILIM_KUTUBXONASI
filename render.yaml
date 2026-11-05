@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: bilim-kutubxonasi-bot
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 9202952114:AAF1NmNDoGOj1VxMw1s0TvRZybu5d_jaCms
+      - key: ADMIN_IDS
+        value: "9202952114"
+      - key: DATABASE_PATH
+        value: database/bilim_kutubxonasi.db
