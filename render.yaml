@@ -1,15 +1,20 @@
 services:
-  - type: worker
+  - type: web
     name: bilim-kutubxonasi-bot
     env: python
     region: frankfurt
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
+    healthCheckPath: /health
     envVars:
       - key: BOT_TOKEN
-        value: 9202952114:AAF1NmNDoGOj1VxMw1s0TvRZybu5d_jaCms
+        sync: false
       - key: ADMIN_IDS
-        value: "9202952114"
+        sync: false
       - key: DATABASE_PATH
         value: database/bilim_kutubxonasi.db
+      - key: WEBHOOK_PATH
+        value: /webhook
+      - key: WEBHOOK_SECRET
+        generateValue: true
