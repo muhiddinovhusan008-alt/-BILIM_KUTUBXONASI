@@ -1,13 +1,14 @@
-"""
-Umumiy buyruqlar, asosiy menyu navigatsiyasi va profil boshqaruvi.
-"""
-
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram import Router, F, Bot
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from database import get_or_create_user, get_user, update_user_profile, get_user_rank, set_user_subscribed_insta
+from config import ADMIN_IDS
+from database import (
+    get_or_create_user, get_user, update_user_profile, get_user_rank,
+    set_user_subscribed_insta, is_user_subscribed_insta
+)
 from keyboards import (
     get_main_keyboard,
     get_cancel_keyboard,
@@ -15,48 +16,181 @@ from keyboards import (
     get_subjects_keyboard,
     get_rating_menu_keyboard,
     get_daily_menu_keyboard,
-    get_admin_main_keyboard
+    get_admin_main_keyboard,
+    get_instagram_sub_keyboard
 )
-from states import EditProfileStates
+from states import EditProfileStates, InstagramVerifyStates
 from utils import is_admin, format_user_profile, escape_html
 
 router = Router()
 
 
 @router.callback_query(F.data == "check_insta_sub")
-async def process_insta_verification(call: CallbackQuery, state: FSMContext):
-    """Instagram obunasi tasdiqlanganda chaqiriladi."""
+async def start_insta_verification(call: CallbackQuery, state: FSMContext):
+    """Instagram obunasini tasdiqlash uchun username yoki skrinshot so'rash."""
+    await state.set_state(InstagramVerifyStates.waiting_for_proof)
+
+    text = (
+        "📸 <b>INSTAGRAM OBUNASINI TASDIQLASH</b>\n\n"
+        "Hurmatli o'quvchi! @muh1dd1nov_ai sahifasiga obuna bo‘lganingizni tasdiqlash uchun:\n\n"
+        "1️⃣ O'zingizning <b>Instagram foydalanuvchi nomingizni (Username)</b> yozib yuboring (masalan: <code>@username</code> yoki <code>muhiddinov</code>);\n"
+        "2️⃣ Yoki sahifaga obuna bo‘lganingiz aks etgan <b>skrinshot (rasm)</b> yuboring!\n\n"
+        "<i>Administrator tekshirib tasdiqlashi bilan bot menyusi darhol ochiladi.</i>"
+    )
+
+    cancel_btn = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="❌ Bekor qilish", callback_data="cancel_insta_verify")]
+        ]
+    )
+
+    await call.message.edit_text(text, reply_markup=cancel_btn, parse_mode="HTML")
+    await call.answer()
+
+
+@router.callback_query(F.data == "cancel_insta_verify")
+async def cancel_insta_verification(call: CallbackQuery, state: FSMContext):
+    """Instagram tasdiqlashni bekor qilish."""
     await state.clear()
-    user_id = call.from_user.id
-    full_name = call.from_user.full_name or "O'quvchi"
+    text = (
+        "⚠️ <b>Botdan to‘liq foydalanish uchun bizning rasmiy Instagram sahifamizga obuna bo‘lishingiz kerak!</b>\n\n"
+        "1️⃣ Pastdagi tugma orqali sahifamizga o‘ting va obuna bo‘ling;\n"
+        "2️⃣ So‘ngra <b>«✅ Obunani tasdiqlash»</b> tugmasini bosing."
+    )
+    await call.message.edit_text(text, reply_markup=get_instagram_sub_keyboard(), parse_mode="HTML")
+    await call.answer()
 
-    # Obunani bazada tasdiqlash
-    await set_user_subscribed_insta(user_id)
-    admin_flag = is_admin(user_id)
 
+@router.message(InstagramVerifyStates.waiting_for_proof)
+async def process_insta_proof(message: Message, state: FSMContext, bot: Bot):
+    """Foydalanuvchi Instagram username yoki skrinshot yuborganida adminga yetkazish."""
+    await state.clear()
+    user_id = message.from_user.id
+    full_name = escape_html(message.from_user.full_name or "O'quvchi")
+    username = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
+
+    proof_info = ""
+    if message.text:
+        proof_info = f"📸 <b>Instagram akkaunt:</b> <code>{escape_html(message.text.strip())}</code>"
+    elif message.caption:
+        proof_info = f"📸 <b>Instagram akkaunt / izoh:</b> {escape_html(message.caption.strip())}"
+    else:
+        proof_info = "📸 <b>Obuna skrinshoti yuborildi</b>"
+
+    # Foydalanuvchiga kuting xabari (bot menyusi hali OCHILMAYDI!)
+    await message.answer(
+        "⏳ <b>So‘rovingiz administratorga yuborildi!</b>\n\n"
+        "Administrator (@Muhiddinov_official) obunangizni tekshirib tasdiqlashi bilanoq bot menyusi siz uchun to‘liq ochiladi. Iltimos, ozgina kuting!",
+        parse_mode="HTML"
+    )
+
+    # Adminga tasdiqlash / rad etish tugmalari
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Tasdiqlash (Botni ochish)", callback_data=f"insta_adm_ok:{user_id}")
+    builder.button(text="❌ Rad etish (Yolg'on)", callback_data=f"insta_adm_no:{user_id}")
+    builder.adjust(1)
+
+    admin_notification = (
+        "🔔 <b>YANGI INSTAGRAM OBUNA TASDIQLASH SO‘ROVI!</b>\n\n"
+        f"👤 <b>O‘quvchi:</b> {full_name}\n"
+        f"🔗 <b>Telegram:</b> {username}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"{proof_info}\n\n"
+        "<i>Haqiqatan ham @muh1dd1nov_ai sahifasiga obuna bo‘lganmi?</i>"
+    )
+
+    for admin_id in ADMIN_IDS:
+        try:
+            if message.photo:
+                # Agar skrinshot bo'lsa, rasmni adminga jo'natish
+                await bot.send_photo(
+                    chat_id=admin_id,
+                    photo=message.photo[-1].file_id,
+                    caption=admin_notification,
+                    reply_markup=builder.as_markup(),
+                    parse_mode="HTML"
+                )
+            else:
+                await bot.send_message(
+                    chat_id=admin_id,
+                    text=admin_notification,
+                    reply_markup=builder.as_markup(),
+                    parse_mode="HTML"
+                )
+        except Exception:
+            pass
+
+
+@router.callback_query(F.data.startswith("insta_adm_ok:"))
+async def admin_approve_insta(call: CallbackQuery, bot: Bot):
+    """Admin foydalanuvchi obunasini tasdiqlaganda chaqiriladi."""
+    target_user_id = int(call.data.split(":")[1])
+
+    # Bazada obunani tasdiqlash
+    await set_user_subscribed_insta(target_user_id, is_sub=True)
+
+    # Foydalanuvchiga botni ochish va xabar berish
     try:
-        await call.message.delete()
+        welcome_text = (
+            "🎉 <b>TABRIKLAYMIZ! INSTAGRAM OBUNANGIZ TASDIQLANDI!</b>\n\n"
+            "Administrator obunangizni muvaffaqiyatli tasdiqladi. «Bilim Kutubxonasi» botining barcha imkoniyatlaridan to‘liq foydalanishingiz mumkin! 🎓\n\n"
+            "O‘zingizga kerakli bo‘limni tanlang:"
+        )
+        await bot.send_message(
+            chat_id=target_user_id,
+            text=welcome_text,
+            reply_markup=get_main_keyboard(is_admin=is_admin(target_user_id)),
+            parse_mode="HTML"
+        )
     except Exception:
         pass
 
-    welcome_text = (
-        f"🎉 <b>TABRIKLAYMIZ! OBUNANGIZ TASDIQLANDI!</b>\n\n"
-        f"Assalomu alaykum, <b>{escape_html(full_name)}</b>!\n\n"
-        f"<b>«BILIM KUTUBXONASI»</b> — zamonaviy o‘quv platformasiga xush kelibsiz! 🎓\n\n"
-        f"Bu yerda siz:\n"
-        f"📚 <i>Barcha fanlar bo‘yicha elektron darsliklar va kitoblarni o‘qishingiz;</i>\n"
-        f"📝 <i>Bilimingizni sinash uchun turli testlarni yechishingiz;</i>\n"
-        f"🏆 <i>O‘quvchilar o‘rtasida o‘z reytingingizni oshirishingiz;</i>\n"
-        f"💡 <i>Har kuni qiziqarli ilmiy faktlar va savollardan xabardor bo‘lishingiz mumkin.</i>\n\n"
-        f"O‘zingizga kerakli bo‘limni tanlang:"
-    )
-
-    await call.message.answer(
-        text=welcome_text,
-        reply_markup=get_main_keyboard(is_admin=admin_flag),
+    await call.message.edit_caption(
+        caption=f"{call.message.caption or call.message.text}\n\n✅ <b>TASDIQLANDI! Foydalanuvchiga bot menyusi ochildi.</b>",
+        reply_markup=None,
+        parse_mode="HTML"
+    ) if call.message.photo else await call.message.edit_text(
+        text=f"{call.message.text}\n\n✅ <b>TASDIQLANDI! Foydalanuvchiga bot menyusi ochildi.</b>",
+        reply_markup=None,
         parse_mode="HTML"
     )
-    await call.answer("✅ Obunangiz tasdiqlandi!")
+    await call.answer("Foydalanuvchi tasdiqlandi!")
+
+
+@router.callback_query(F.data.startswith("insta_adm_no:"))
+async def admin_reject_insta(call: CallbackQuery, bot: Bot):
+    """Admin foydalanuvchi obunasini rad etganda chaqiriladi."""
+    target_user_id = int(call.data.split(":")[1])
+
+    # Bazada obunani 0 qilish
+    await set_user_subscribed_insta(target_user_id, is_sub=False)
+
+    # Foydalanuvchiga rad etilganini bildirish
+    try:
+        reject_text = (
+            "❌ <b>KECHIRASIZ, OBUNANGIZ TASDIQLANMADI!</b>\n\n"
+            "Administrator tekshirdi, siz @muh1dd1nov_ai sahifasiga obuna bo‘lmagansiz yoki noto‘g‘ri ma'lumot yuborgansiz.\n\n"
+            "Iltimos, avval haqiqatdan sahifamizga obuna bo‘ling va qayta tasdiqlash uchun so‘rov yuboring!"
+        )
+        await bot.send_message(
+            chat_id=target_user_id,
+            text=reject_text,
+            reply_markup=get_instagram_sub_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+
+    await call.message.edit_caption(
+        caption=f"{call.message.caption or call.message.text}\n\n❌ <b>RAD ETILDI! Foydalanuvchiga obuna rad etilgani bildirildi.</b>",
+        reply_markup=None,
+        parse_mode="HTML"
+    ) if call.message.photo else await call.message.edit_text(
+        text=f"{call.message.text}\n\n❌ <b>RAD ETILDI! Foydalanuvchiga obuna rad etilgani bildirildi.</b>",
+        reply_markup=None,
+        parse_mode="HTML"
+    )
+    await call.answer("So'rov rad etildi!")
 
 
 @router.message(CommandStart())

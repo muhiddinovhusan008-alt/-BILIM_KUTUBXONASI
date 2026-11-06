@@ -36,9 +36,20 @@ class InstagramSubscriptionMiddleware(BaseMiddleware):
         if is_admin(user_id):
             return await handler(event, data)
 
+        # Adminning tasdiqlash/rad etish tugmalariga ruxsat berish
+        if isinstance(event, CallbackQuery) and event.data and (event.data.startswith("insta_adm_ok:") or event.data.startswith("insta_adm_no:")):
+            return await handler(event, data)
+
         # Agar foydalanuvchi "Obunani tasdiqlash" tugmasini bosayotgan bo'lsa, o'tkaziladi
         if isinstance(event, CallbackQuery) and event.data == "check_insta_sub":
             return await handler(event, data)
+
+        # Agar foydalanuvchi Instagram ma'lumotlarini (skrinshot yoki username) yuborayotgan bo'lsa, o'tkaziladi
+        state = data.get("state")
+        if state:
+            current_state = await state.get_state()
+            if current_state == "InstagramVerifyStates:waiting_for_proof":
+                return await handler(event, data)
 
         # Obunani bazadan tekshirish
         is_sub = await is_user_subscribed_insta(user_id)

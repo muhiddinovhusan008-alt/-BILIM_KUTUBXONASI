@@ -77,10 +77,11 @@ async def is_user_subscribed_insta(user_id: int) -> bool:
         return False
 
 
-async def set_user_subscribed_insta(user_id: int):
-    """Foydalanuvchi Instagram obunasini tasdiqlangan deb belgilaydi."""
+async def set_user_subscribed_insta(user_id: int, is_sub: bool = True):
+    """Foydalanuvchi Instagram obunasi holatini o'zgartiradi."""
     async with get_db() as db:
-        await db.execute("UPDATE users SET is_subscribed_insta = 1 WHERE user_id = ?", (user_id,))
+        val = 1 if is_sub else 0
+        await db.execute("UPDATE users SET is_subscribed_insta = ? WHERE user_id = ?", (val, user_id))
         await db.commit()
 
 

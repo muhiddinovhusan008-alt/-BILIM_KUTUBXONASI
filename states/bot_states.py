@@ -22,6 +22,10 @@ class QuizStates(StatesGroup):
     answering = State()
 
 
+class InstagramVerifyStates(StatesGroup):
+    waiting_for_proof = State()
+
+
 # Admin uchun holatlar
 class AdminAddBookStates(StatesGroup):
     waiting_for_subject = State()

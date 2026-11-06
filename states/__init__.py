@@ -7,7 +7,8 @@ from .bot_states import (
     AdminAddDailyQuestionStates,
     AdminBroadcastStates,
     ContactStates,
-    QuizStates
+    QuizStates,
+    InstagramVerifyStates
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "AdminAddDailyQuestionStates",
     "AdminBroadcastStates",
     "ContactStates",
-    "QuizStates"
+    "QuizStates",
+    "InstagramVerifyStates"
 ]
