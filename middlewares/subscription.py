@@ -32,14 +32,6 @@ class InstagramSubscriptionMiddleware(BaseMiddleware):
             username=user.username
         )
 
-        # Administratorlarga cheklov qo'yilmaydi
-        if is_admin(user_id):
-            return await handler(event, data)
-
-        # Adminning tasdiqlash/rad etish tugmalariga ruxsat berish
-        if isinstance(event, CallbackQuery) and event.data and (event.data.startswith("insta_adm_ok:") or event.data.startswith("insta_adm_no:")):
-            return await handler(event, data)
-
         # Agar foydalanuvchi "Obunani tasdiqlash" tugmasini bosayotgan bo'lsa, o'tkaziladi
         if isinstance(event, CallbackQuery) and event.data == "check_insta_sub":
             return await handler(event, data)
