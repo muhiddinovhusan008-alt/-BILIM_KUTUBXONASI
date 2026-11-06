@@ -4,11 +4,12 @@ Fanlar ro'yxati, kitoblar katalogi, qidirish va yuklab olish.
 """
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 
+from config import BOOKS_DIR
 from database import (
     get_subjects,
     get_subject_by_id,
@@ -22,7 +23,8 @@ from keyboards import (
     get_books_keyboard,
     get_book_action_keyboard,
     get_main_keyboard,
-    get_cancel_keyboard
+    get_cancel_keyboard,
+    get_biology_grades_keyboard
 )
 from states import SearchBookStates
 from utils import escape_html, is_admin
@@ -56,10 +58,26 @@ async def show_subject_books(call: CallbackQuery):
     """Tanlangan fan bo'yicha kitoblarni ko'rsatish."""
     subject_id = int(call.data.split(":")[1])
     subject = await get_subject_by_id(subject_id)
-    books = await get_books_by_subject(subject_id)
 
     sub_name = subject["name"] if subject else "Fan"
     sub_icon = subject["icon"] if subject else "📖"
+
+    # Agar Biologiya fani tanlansa (id == 4 yoki nomi 'Biologiya'), sinflar tanlovini ko'rsatish
+    if subject_id == 4 or (subject and "biologiya" in subject["name"].lower()):
+        text = (
+            f"{sub_icon} <b>BIOLOGIYA DARSLIKLARI VA INTERAKTIV MATERIALLAR</b>\n\n"
+            "Qaysi sinf darsligi yoki interaktiv materialini ko'rmoqchisiz?\n"
+            "<i>Kerakli sinfni tanlang:</i>"
+        )
+        await call.message.edit_text(
+            text,
+            reply_markup=get_biology_grades_keyboard(),
+            parse_mode="HTML"
+        )
+        await call.answer()
+        return
+
+    books = await get_books_by_subject(subject_id)
 
     if not books:
         builder = InlineKeyboardBuilder()
@@ -83,6 +101,84 @@ async def show_subject_books(call: CallbackQuery):
         parse_mode="HTML"
     )
     await call.answer()
+
+
+@router.callback_query(F.data.startswith("bio_grade:"))
+async def show_biology_grade_materials(call: CallbackQuery):
+    """Biologiya fani bo'yicha tanlangan sinf materialini ko'rsatish."""
+    grade_num = int(call.data.split(":")[1])
+
+    if grade_num == 7:
+        # 7-sinf Zoologiya interaktiv HTML faylini yuborish!
+        html_path = BOOKS_DIR / "Zoologiya_7_sinf_interaktiv.html"
+
+        if html_path.exists():
+            file_to_send = FSInputFile(
+                path=html_path,
+                filename="Zoologiya_7_sinf_Interaktiv_Savollar.html"
+            )
+            caption = (
+                "🌿 <b>ZOOLOGIYA 7-SINF — INTERAKTIV SAVOLLAR VA TESTLAR</b>\n\n"
+                "📚 <b>Muallif:</b> O. Mavlonov darsligi asosida tayyorlangan\n"
+                "🎯 <b>Imkoniyatlar:</b>\n"
+                " • 10 ta chuqur mantiqiy savol va ilmiy asoslangan javoblar\n"
+                " • Interaktiv test rejimi (A, B, C, D variantlari)\n"
+                " • O'rganish kartalari (Flashcards)\n"
+                " • Tasodifiy savollar generatori\n\n"
+                "💡 <i>Ushbu HTML faylni yuklab oling va xohlagan brauzerda (Chrome, Safari, Opera yoki telefoningizda) ochib bemalol foydalaning!</i>"
+            )
+
+            builder = InlineKeyboardBuilder()
+            builder.button(text="🔙 Biologiya sinflariga", callback_data="sub_lib:4")
+            builder.button(text="📚 Fanlar ro'yxatiga", callback_data="back_to_subjects_lib")
+            builder.adjust(1)
+
+            await call.message.answer_document(
+                document=file_to_send,
+                caption=caption,
+                reply_markup=builder.as_markup(),
+                parse_mode="HTML"
+            )
+            await call.answer("Zoologiya 7-sinf interaktiv fayli yuborildi!")
+            return
+        else:
+            await call.answer("Fayl topilmadi!", show_alert=True)
+            return
+
+    # Boshqa sinflar uchun
+    books = await get_books_by_subject(4)
+    target_book = None
+    for b in books:
+        if f"{grade_num}-sinf" in b.get("grade", "") or f"{grade_num}-sinf" in b.get("title", ""):
+            target_book = b
+            break
+
+    builder = InlineKeyboardBuilder()
+
+    if target_book:
+        title = escape_html(target_book["title"])
+        author = escape_html(target_book["author"])
+        desc = escape_html(target_book["description"])
+        text = (
+            f"🌿 <b>Biologiya — {grade_num}-sinf</b>\n\n"
+            f"📖 <b>Kitob:</b> {title}\n"
+            f"✍️ <b>Muallif:</b> {author}\n"
+            f"📝 <b>Tavsif:</b> {desc or 'Umumiy darslik qo‘llanmasi.'}\n\n"
+            f"<i>Batafsil ko'rish yoki yuklab olish uchun tanlang:</i>"
+        )
+        builder.button(text=f"📥 {title} ({grade_num}-sinf)", callback_data=f"book_info:{target_book['id']}")
+    else:
+        text = (
+            f"🌿 <b>Biologiya — {grade_num}-sinf</b>\n\n"
+            f"Ushbu sinf uchun darslik va qo'shimcha materiallar tez orada yuklanadi!"
+        )
+
+    builder.button(text="🔙 Biologiya sinflariga", callback_data="sub_lib:4")
+    builder.adjust(1)
+
+    await call.message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="HTML")
+    await call.answer()
+
 
 
 @router.callback_query(F.data.startswith("book_info:"))

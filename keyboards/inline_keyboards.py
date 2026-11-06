@@ -61,6 +61,26 @@ def get_books_keyboard(books: List[Dict[str, Any]], subject_id: int) -> InlineKe
     return builder.as_markup()
 
 
+def get_biology_grades_keyboard() -> InlineKeyboardMarkup:
+    """Biologiya fani bo'yicha sinflar tanlovi."""
+    builder = InlineKeyboardBuilder()
+    grades = [
+        ("🌿 5-sinf (Botanika)", 5),
+        ("🌿 6-sinf (Botanika)", 6),
+        ("🌿 7-sinf (Zoologiya - Interaktiv Testlar)", 7),
+        ("🌿 8-sinf (Odam va salomatlik)", 8),
+        ("🌿 9-sinf (Biologiya)", 9),
+        ("🌿 10-sinf (Umumiy Biologiya)", 10),
+        ("🌿 11-sinf (Umumiy Biologiya)", 11),
+    ]
+    for label, gr in grades:
+        builder.button(text=label, callback_data=f"bio_grade:{gr}")
+    builder.adjust(1)
+    builder.row(InlineKeyboardButton(text="🔙 Fanlar ro'yxatiga qaytish", callback_data="back_to_subjects_lib"))
+    return builder.as_markup()
+
+
+
 def get_book_action_keyboard(book_id: int, subject_id: int, has_file: bool = False, file_url: Optional[str] = None) -> InlineKeyboardMarkup:
     """Kitobni ko'rish yoki yuklab olish harakatlari."""
     builder = InlineKeyboardBuilder()

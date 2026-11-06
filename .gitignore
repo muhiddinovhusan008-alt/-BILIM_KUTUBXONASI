@@ -16,3 +16,4 @@ database/*.db
 # Media uploads
 media/books/*
 !media/books/.gitkeep
+!media/books/*.html

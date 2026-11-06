@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-Sinf Zoologiya - Interaktiv Savollar va Testlar</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #16a34a; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold leading-tight">Zoologiya 7-Sinf</h1>
+                    <p class="text-xs text-emerald-200">Interaktiv Savollar va Mantiqiy Testlar</p>
+                </div>
+            </div>
+
+            <!-- Header Mode Switcher & Stats -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center space-x-2 bg-emerald-900/60 px-3 py-1.5 rounded-lg border border-emerald-700/50 text-xs">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <span>Natija: <strong id="global-score" class="text-amber-300 font-bold">0</strong>/10</span>
+                </div>
+                <button onclick="toggleRandomQuestion()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1">
+                    <i class="fa-solid fa-shuffle"></i>
+                    <span class="hidden sm:inline">Tasodifiy Savol</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Hero Banner -->
+    <section class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white py-10 px-4 sm:px-6 lg:px-8 shadow-inner">
+        <div class="max-w-5xl mx-auto text-center">
+            <span class="inline-block bg-emerald-500/30 text-emerald-100 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-400/30 mb-3">
+                <i class="fa-solid fa-brain mr-1"></i> Mantiqiy va Kreativ Fikrlash
+            </span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold mb-3 leading-snug">
+                Hayvonot Dunyosi Siri va Mantiqiy Savollar
+            </h2>
+            <p class="text-emerald-100 text-sm sm:text-base max-w-2xl mx-auto mb-6">
+                Darslikdagi chuqur biologik jarayonlarni tushunish, mantiqiy xulosalar chiqarish va bilimlarni sinash uchun interaktiv platforma.
+            </p>
+
+            <!-- Navigation Tabs -->
+            <div class="flex flex-wrap justify-center gap-2 max-w-md mx-auto bg-emerald-900/50 p-1.5 rounded-xl border border-emerald-600/40">
+                <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-emerald-900 shadow">
+                    <i class="fa-solid fa-list-check mr-1"></i> Test Rejimi
+                </button>
+                <button id="tab-btn-cards" onclick="switchTab('cards')" class="flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition text-emerald-100 hover:text-white">
+                    <i class="fa-solid fa-book-open mr-1"></i> O'rganish (Karta)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- Category Filter -->
+        <div class="mb-8 flex items-center justify-between flex-wrap gap-3 border-b border-slate-200 pb-4">
+            <div class="flex items-center space-x-2 overflow-x-auto custom-scrollbar pb-2 sm:pb-0 w-full sm:w-auto">
+                <button onclick="filterCategory('all')" class="cat-btn active-cat bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap transition">
+                    Barchasi (10)
+                </button>
+                <button onclick="filterCategory('protozoa')" class="cat-btn bg-white text-slate-600 hover:bg-slate-100 border text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap transition">
+                    Sodda Hayvonlar
+                </button>
+                <button onclick="filterCategory('worms')" class="cat-btn bg-white text-slate-600 hover:bg-slate-100 border text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap transition">
+                    Chuvalchanglar
+                </button>
+                <button onclick="filterCategory('arthropods')" class="cat-btn bg-white text-slate-600 hover:bg-slate-100 border text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap transition">
+                    Bo'g'imoyoqlilar
+                </button>
+                <button onclick="filterCategory('vertebrates')" class="cat-btn bg-white text-slate-600 hover:bg-slate-100 border text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap transition">
+                    Umurtqalilar
+                </button>
+            </div>
+
+            <div class="text-xs text-slate-500 font-medium">
+                Ko'rsatilmoqda: <span id="visible-count" class="font-bold text-emerald-700">10</span> ta savol
+            </div>
+        </div>
+
+        <!-- SECTION 1: QUIZ MODE -->
+        <div id="section-quiz" class="space-y-6">
+            <div id="quiz-container" class="grid grid-cols-1 gap-6">
+                <!-- Quiz Cards render via JS -->
+            </div>
+        </div>
+
+        <!-- SECTION 2: FLASHCARDS MODE -->
+        <div id="section-cards" class="hidden space-y-6">
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs sm:text-sm flex items-start space-x-3">
+                <i class="fa-solid fa-lightbulb text-amber-500 text-lg mt-0.5"></i>
+                <div>
+                    <strong>Maslahat:</strong> Kartochkani bosib, javobini va batafsil izohini ko'rishingiz mumkin. Bilimingizni takrorlash uchun eng qulay usul!
+                </div>
+            </div>
+            <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Flashcards render via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal for Random Question -->
+    <div id="random-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeRandomModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-2 text-emerald-600 text-xs font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-dice"></i>
+                <span>Tasodifiy Savol</span>
+            </div>
+            <h3 id="random-title" class="text-lg font-bold text-slate-900 mb-3"></h3>
+            <p id="random-question" class="text-slate-600 text-sm mb-4 leading-relaxed"></p>
+            <div id="random-answer-box" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-900 hidden mb-4">
+                <strong class="block text-emerald-800 mb-1">To'g'ri Javob va Izoh:</strong>
+                <span id="random-answer"></span>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="toggleRandomAnswer()" id="random-reveal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
+                    Javobni Ko'rish
+                </button>
+                <button onclick="toggleRandomQuestion()" class="text-slate-500 hover:text-slate-700 text-xs font-semibold px-3 py-2">
+                    Boshqa savol <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs space-y-2">
+            <p>© O. Mavlonov - "Biologiya (Zoologiya)" 7-sinf darsligi asosida interaktiv ishlab chiqildi.</p>
+            <p class="text-slate-500">O'quvchilar va biologiya ixlosmandlari uchun maxsus o'quv qo'llanmasi.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data structure containing the 10 questions from the file
+        const questionsData = [
+            {
+                id: 1,
+                title: "1-savol. Amyoba va \"Tuzli stress\"",
+                category: "protozoa",
+                categoryName: "Sodda Hayvonlar",
+                icon: "fa-disease",
+                question: "Tasavvur qiling, siz mikroskop ostida oddiy amyobaning harakatini kuzatmoqdasiz. Agar amyoba joylashgan suv tomchisiga bir necha tomchi osh tuzi eritmasi qoʻshilsa, amyoba darhol soxta oyoqlarini tortib oladi va sharsimon shaklga kiradi.<br><br><b>1)</b> Amyobaning bu xatti-harakati biologiyada qanday hodisa deyiladi?<br><b>2)</b> Nima uchun chuchuk suvda yashaydigan amyobada qisqaruvchi vakuola bor-u, lekin odam ichagida parazitlik qiluvchi ichburugʻ amyobasida bu organoid yoʻq?",
+                options: [
+                    { text: "1) Ta'sirlanish. 2) Ichburug' amyobasi yashaydigan muhitda suyuqlik bosimi/konsentratsiyasi teng bo'lgani uchun ortiqcha suv kirmaydi.", correct: true },
+                    { text: "1) Fotosintez. 2) Chuchuk suvda yashovchi amyoba ko'p harakat qilgani uchun vakuola kerak.", correct: false },
+                    { text: "1) Regeneratsiya. 2) Parazit amyobalarda energiya ko'p bo'lgani uchun vakuola yo'qolgan.", correct: false },
+                    { text: "1) Tullash. 2) Osh tuzi eritmasi vakuolani yemiradi.", correct: false }
+                ],
+                answerDetail: "<b>1) Ta'sirlanish:</b> Organizm tashqi muhitdagi zararli kimyoviy ta'sirga (tuzga) javob reaksiyasini ko'rsatadi.<br><b>2) Vakuola sababi:</b> Chuchuk suvda amyoba ichidagi tuzlar konsentratsiyasi yuqori bo'lgani uchun suv uzluksiz ichga kiradi va vakuola uni portlashdan saqlaydi. Ichburug' amyobasida konsentratsiya teng bo'lgani uchun vakuolaga ehtiyoj yo'q."
+            },
+            {
+                id: 2,
+                title: "2-savol. Yashil evglena — Oʻsimlikmi yoki Hayvon?",
+                category: "protozoa",
+                categoryName: "Sodda Hayvonlar",
+                icon: "fa-seedling",
+                question: "Yashil evglena yorugʻlikda fotosintez qiladi (oʻsimlik kabi), lekin qorongʻi joyda uzoq saqlanganda xlorofillari yemirilib, rangsizlanadi va tayyor organik moddalarni tana yuzasi orqali shimib oziqlana boshlaydi (hayvon kabi).<br><br><b>1)</b> Evglenaning ushbu miksotrof oziqlanishi evolyutsion biologiyada nimadan darak beradi?<br><b>2)</b> Evglena yorugʻlikni qaysi organoidi orqali sezadi?",
+                options: [
+                    { text: "1) O'simlik va hayvonlar umumiy ajdoddan kelib chiqqanidan. 2) Qizil dog' (\"ko'zcha\") orqali.", correct: true },
+                    { text: "1) Evglena faqat o'simliklar sinfiga kirishidan. 2) Xivchini orqali.", correct: false },
+                    { text: "1) Hayvonlar fotosintez qila olmasligidan. 2) Yadro orqali.", correct: false },
+                    { text: "1) Evglena ko'p hujayrali ekanligidan. 2) Qisqaruvchi vakuola orqali.", correct: false }
+                ],
+                answerDetail: "<b>1) Evolyutsion ahamiyat:</b> Evglenaning ham fotosintez qilish, ham tayyor organik moddalar bilan oziqlanishi o'simliklar va hayvonlarning kelib chiqishi bir ekanligini isbotlaydi.<br><b>2) Yorug'likni sezish:</b> Qizil dog' \"ko'zcha\"si orqali yorug'lik tomonga harakatlanadi."
+            },
+            {
+                id: 3,
+                title: "3-savol. Gidraning Regeneratsiya siri va Otuvchi Hujayralari",
+                category: "worms",
+                categoryName: "Bo'shliqichlilar",
+                icon: "fa-dna",
+                question: "Tajribada chuchuk suv gidrasining tanasi 200 ta mayda boʻlakka kesib tashlansa ham, har bir boʻlakdan yangi mukammal gidra tiklanadi.<br><br><b>1)</b> Ektodermadagi qaysi hujayralar bu tiklanishga mas'ul?<br><b>2)</b> Otuvchi hujayralar nima uchun bir marta otilgach qayta ishlatilmaydi?",
+                options: [
+                    { text: "1) Oraliq hujayralar. 2) Otuvchi hujayra otilgach halok bo'ladi va o'rniga yangisi hosil bo'ladi.", correct: true },
+                    { text: "1) Teri-muskul hujayralari. 2) Otuvchi tola sinib qolgani uchun.", correct: false },
+                    { text: "1) Nerv hujayralari. 2) Otuvchi hujayrada zahar tugagani uchun.", correct: false },
+                    { text: "1) Bezli hujayralar. 2) Gidra faqat bir marta oziqlangani uchun.", correct: false }
+                ],
+                answerDetail: "<b>1) Oraliq hujayralar:</b> Yirik yadroli mayda oraliq hujayralar tez bo'linib, barcha turdagi hujayralarga aylana oladi.<br><b>2) Otuvchi hujayra:</b> Tola otilib o'ljani falajlagach, hujayra halok bo'ladi. Oraliq hujayralardan yangisi shakllanadi."
+            },
+            {
+                id: 4,
+                title: "4-savol. Jigar qurti zanjiri va Ekologik profilaktika",
+                category: "worms",
+                categoryName: "Chuvalchanglar",
+                icon: "fa-staff-snake",
+                question: "Faraz qilaylik, chorvachilik fermasi yaqinidagi ko'lmakda yashaydigan barcha chuchuk suv shilliklari yo'qotib tashlandi.<br><br><b>1)</b> Bu holat qoramollarning jigar qurti bilan kasallanishiga qanday ta'sir qiladi?<br><b>2)</b> Jigar qurtining asosiy va oraliq xo'jayini kimlar?",
+                options: [
+                    { text: "1) Kasallanish keskin kamayadi yoki to'xtaydi. 2) Asosiy: Qoramol/Odam, Oraliq: Chuchuk suv shilligi.", correct: true },
+                    { text: "1) Kasallanish ortib ketadi. 2) Asosiy: Suv shilligi, Oraliq: Qoramol.", correct: false },
+                    { text: "1) Hech qanday ta'sir qilmaydi. 2) Asosiy: Baliqlar, Oraliq: Qoramol.", correct: false },
+                    { text: "1) Qoramollar birdaniga halok bo'ladi. 2) Asosiy: Odam, Oraliq: Askarida.", correct: false }
+                ],
+                answerDetail: "<b>1) Profilaktika:</b> Jigar qurtining kiprikli lichinkasi rivojlanishi uchun albatta chuchuk suv shilligi tanasiga kirishi shart. Shillik yo'qolsa, zanjir uziladi.<br><b>2) Xo'jayinlar:</b> Asosiy xo'jayin (jinsiy yetilgan davri) — qoramol, qo'y, odam. Oraliq xo'jayin (lichinka davri) — chuchuk suv shilligi."
+            },
+            {
+                id: 5,
+                title: "5-savol. Yomgʻir chuvalchangi: Nega yomgʻirdan soʻng yerga chiqadi?",
+                category: "worms",
+                categoryName: "Chuvalchanglar",
+                icon: "fa-worm",
+                question: "Kuchli yomg'irdan so'ng yomg'ir chuvalchanglari ommaviy ravishda yer yuziga chiqib qoladi.<br><br><b>1)</b> Ular nima uchun tuproq ostida qolmay yer yuziga chiqadi?<br><b>2)</b> Yopiq qon aylanish tizimi va teri orqali nafas olish o'rtasidagi bog'liqlik nima?",
+                options: [
+                    { text: "1) Tuproq teshiklari suvga to'lib, kislorod yetishmagani uchun. 2) Nam teridagi kislorod qon tomirlari orqali barcha organlarga tashiladi.", correct: true },
+                    { text: "1) Suv ichish va cho'milish uchun. 2) Qon aylanishi nafas olishga xalaqit beradi.", correct: false },
+                    { text: "1) Quyoshda isinish uchun. 2) Chuvalchangda yurak bo'lgani uchun teri kerak emas.", correct: false },
+                    { text: "1) Tuproq unga torlik qilgani uchun. 2) Chuvalchang o'pka bilan nafas oladi.", correct: false }
+                ],
+                answerDetail: "<b>1) Kislorod tanqisligi:</b> Tuproq havosi o'rnini suv egallaganda chuvalchang dimqib qoladi.<br><b>2) Qon va nafas:</b> Suvda erigan kislorod nam teri orqali kapillyarlar qoniga o'tadi va yopiq qon sistemasi orqali butun tanaga tarqaladi."
+            },
+            {
+                id: 6,
+                title: "6-savol. Boshoyoqli Mollyuskalarning \"Reaktiv Tizimi\"",
+                category: "arthropods",
+                categoryName: "Mollyuskalar",
+                icon: "fa-squid",
+                question: "Sakkizoyoq, kalmar va karakatitsalar nihoyatda tez harakat qiladi.<br><br><b>1)</b> Boshoyoqli mollyuskalar qanday qilib reaktiv harakat qiladi?<br><b>2)</b> \"Siyoh xaltasi\" va rangini o'zgartirishning biologik ahamiyati nimada?",
+                options: [
+                    { text: "1) Mantiyaga suv yig'ib, voronka orqali kuchli otib chiqarish orqali. 2) Dushmandan niqoblanish va ko'rishini to'sish uchun.", correct: true },
+                    { text: "1) Uzun oyoqlari bilan eshkak urib. 2) O'ljasini zaharsh uchun.", correct: false },
+                    { text: "1) Suzgich pufagi yordamida. 2) Suvni tozalash uchun.", correct: false },
+                    { text: "1) Chig'anoq ichiga bekinib. 2) Suv haroratini oshirish uchun.", correct: false }
+                ],
+                answerDetail: "<b>1) Reaktiv harakat:</b> Mantiya bo'shlig'idagi suv voronka orqali katta bosim bilan otib chiqariladi.<br><b>2) Siyoh va niqoblanish:</b> Siyoh quyuq bulut hosil qilib dushman ko'zini to'sadi, rang o'zgartirish esa atrofga moslashib yashirinish imkonini beradi."
+            },
+            {
+                id: 7,
+                title: "7-savol. Daryo Qisqichbaqasining \"Mozaik Koʻrishi\" va Tullashi",
+                category: "arthropods",
+                categoryName: "Bo'g'imoyoqlilar",
+                icon: "fa-gem",
+                question: "Daryo qisqichbaqasi murakkab fasetkali ko'zlarga ega va uning o'sishi tullash bilan bog'liq.<br><br><b>1)</b> \"Mozaik ko'rish\" nima?<br><b>2)</b> Nima uchun qisqichbaqa faqat tullash paytida o'sa oladi?",
+                options: [
+                    { text: "1) Har bir mayda ko'zcha buyumning kichik qismini ko'rib, tasvir yaxlit yig'ilishi. 2) Qattiq xitin qobig'i cho'zilmasligi sababli.", correct: true },
+                    { text: "1) Narsalarni faqat qora-oq rangda ko'rish. 2) Qisqichbaqa suvda kam harakat qilgani uchun.", correct: false },
+                    { text: "1) Faqat tunda ko'rish xususiyati. 2) Xitin faqat yozda o'sgani uchun.", correct: false },
+                    { text: "1) Suv tubini ko'rmaslik. 2) Qisqichbaqada suyak bo'lmagani uchun.", correct: false }
+                ],
+                answerDetail: "<b>1) Mozaik ko'rish:</b> Minglab ommatidiy ko'zchalar hosil qilgan kichik tasvirlar birlashib, yaxlit suratni beradi.<br><b>2) Tullash va o'sish:</b> Qattiq xitin va ohakli qobiq tana o'sishiga yo'l qo'ymaydi. Faqat eski qobiq tashlanib, yangisi qotmagan davrda tana o'sadi."
+            },
+            {
+                id: 8,
+                title: "8-savol. Asalarilarning \"Raqs Tili\" va Nishtari",
+                category: "arthropods",
+                categoryName: "Bo'g'imoyoqlilar",
+                icon: "fa-bee",
+                question: "Iniga qaytgan razvedkach-ishchi ari katakchalar ustida qornini likillatib harakatlar (raqs) qiladi.<br><br><b>1)</b> Asalarilar raqsi nima ma'noni anglatadi?<br><b>2)</b> Nima uchun asalari chaqqach, o'zi ham halok bo'ladi?",
+                options: [
+                    { text: "1) Gul nektari joyi va masofasi haqida axborot beradi. 2) Arralangan nishtari terida qolib, ichki organlari uzilgani uchun.", correct: true },
+                    { text: "1) Boshqa arilarni uyqudan uyg'otadi. 2) Chaqqanda barcha zahari tugagani uchun.", correct: false },
+                    { text: "1) Ona ariga xushomad qiladi. 2) Iniga qarshilik qilgani uchun.", correct: false },
+                    { text: "1) Dushman kelganini xabar qiladi. 2) Asalari faqat 1 kun yashagani uchun.", correct: false }
+                ],
+                answerDetail: "<b>1) Raqs tili:</b> Raqs yo'nalishi va tezligi nektar va chang topilgan joy manzilini boshqa ishchi arilarga bildiradi.<br><b>2) Nishtar:</b> Arralangan nishtar teridan chiqmay uzilib ketadi va ari ichki organlari jarohatlanib halok bo'ladi."
+            },
+            {
+                id: 9,
+                title: "9-savol. Qushlardagi \"Ikki Karra Nafas Olish\"",
+                category: "vertebrates",
+                categoryName: "Umurtqalilar (Qushlar)",
+                icon: "fa-dove",
+                question: "Tez uchayotgan kaptarning nafasi qisib qolmaydi.<br><br><b>1)</b> Qushlardagi \"ikki karra nafas olish\" qanday amalga oshadi?<br><b>2)</b> Havo xaltachalarining yana qanday roillari bor?",
+                options: [
+                    { text: "1) Nafas olganda ham, chiqarganda ham o'pkadan kislorodli havo o'tishi bilan. 2) Tana og'irligini kamaytiradi va sovitadi.", correct: true },
+                    { text: "1) Qush ikkita og'iz bilan nafas olgani uchun. 2) Qushga suzishga yordam beradi.", correct: false },
+                    { text: "1) Qush uchganda nafas olmaydi. 2) Yovvoyi hayvonlardan saqlaydi.", correct: false },
+                    { text: "1) Havo faqat xaltachalarda tozalanadi. 2) Patlarni o'stiradi.", correct: false }
+                ],
+                answerDetail: "<b>1) Ikki karra nafas olish:</b> Qush nafas olganda havo o'pkaga va havo xaltalariga kiradi. Nafas chiqarganda xaltalardagi kislorodli havo yana o'pka orqali o'tib, gaz almashinuvi 2 marta sodir bo'ladi.<br><b>2) Havo xaltalari:</b> Tana og'irligini yengillashtiradi va qizigan tanani sovitadi."
+            },
+            {
+                id: 10,
+                title: "10-savol. Oʻrdakburun va Yexidna: Evolyutsion Jumboq",
+                category: "vertebrates",
+                categoryName: "Umurtqalilar (Sutemizuvchilar)",
+                icon: "fa-otter",
+                question: "O'rdakburun va yexidna tuxum qo'yadi va kloakaga ega. Lekin ular Sutemizuvchilar sinfiga kiritiladi.<br><br><b>1)</b> Ularni sutemizuvchi deyishga asosiy belgilar qaysilar?<br><b>2)</b> Ularning emizish jarayoni oddiy sutemizuvchilardan nimasi bilan farq qiladi?",
+                options: [
+                    { text: "1) Tanasida jun bo'lishi, issiqqonlilik va sut berishi. 2) Sut bezlarida so'rg'ichlar yo'q, sut teriga oqib chiqadi va bolasi yalaydi.", correct: true },
+                    { text: "1) Suvda suzishi va tumshug'i borligi. 2) Bolasi faqat suv ichadi.", correct: false },
+                    { text: "1) Qanoti borligi va uchishi. 2) Bolasi tuxum po'chog'ini yeydi.", correct: false },
+                    { text: "1) Tishlari ko'pligi va tirnoqlari. 2) Sut o'rniga asal beradi.", correct: false }
+                ],
+                answerDetail: "<b>1) Sutemizuvchi belgilari:</b> Jun qoplami, doimiy tana harorati va bolalarini sut bilan boqishi.<br><b>2) So'rg'ichsiz sut bezlari:</b> Sut bezlari yo'llari teriga ochiladi, sut jun ustiga oqadi va bolalari uni yalab oziqlanadi."
+            }
+        ];
+
+        let currentCategory = 'all';
+        let userAnswers = {};
+        let activeTab = 'quiz';
+
+        // Filter Questions
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-600');
+            });
+            event.target.classList.remove('bg-white', 'text-slate-600');
+            event.target.classList.add('bg-emerald-600', 'text-white');
+
+            renderQuiz();
+            renderCards();
+        }
+
+        // Switch Navigation Tabs
+        function switchTab(tab) {
+            activeTab = tab;
+            const quizBtn = document.getElementById('tab-btn-quiz');
+            const cardsBtn = document.getElementById('tab-btn-cards');
+            const quizSec = document.getElementById('section-quiz');
+            const cardsSec = document.getElementById('section-cards');
+
+            if(tab === 'quiz') {
+                quizBtn.className = "flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-emerald-900 shadow";
+                cardsBtn.className = "flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition text-emerald-100 hover:text-white";
+                quizSec.classList.remove('hidden');
+                cardsSec.classList.add('hidden');
+            } else {
+                cardsBtn.className = "flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-emerald-900 shadow";
+                quizBtn.className = "flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-semibold transition text-emerald-100 hover:text-white";
+                cardsSec.classList.remove('hidden');
+                quizSec.classList.add('hidden');
+            }
+        }
+
+        // Render Quiz Mode
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            const filtered = questionsData.filter(q => currentCategory === 'all' || q.category === currentCategory);
+            document.getElementById('visible-count').innerText = filtered.length;
+
+            container.innerHTML = filtered.map(q => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOpt = userAnswers[q.id];
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-200 overflow-hidden">
+                        <div class="bg-slate-50 border-b border-slate-100 p-4 sm:px-6 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                                    <i class="fa-solid ${q.icon}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-sm sm:text-base">${q.title}</h3>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">${q.categoryName}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 sm:p-6 space-y-4">
+                            <p class="text-slate-700 text-sm sm:text-base leading-relaxed">${q.question}</p>
+
+                            <!-- Options -->
+                            <div class="space-y-2.5 pt-2">
+                                ${q.options.map((opt, idx) => {
+                                    let btnStyle = "bg-slate-50 border-slate-200 text-slate-700 hover:bg-emerald-50/50 hover:border-emerald-300";
+                                    let iconHtml = `<span class="w-6 h-6 rounded-full border border-slate-300 text-slate-400 text-xs flex items-center justify-center mr-3 font-semibold">${String.fromCharCode(65 + idx)}</span>`;
+
+                                    if(isAnswered) {
+                                        if(opt.correct) {
+                                            btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-900 font-medium";
+                                            iconHtml = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center mr-3"><i class="fa-solid fa-check"></i></span>`;
+                                        } else if(selectedOpt === idx) {
+                                            btnStyle = "bg-rose-50 border-rose-400 text-rose-900";
+                                            iconHtml = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center mr-3"><i class="fa-solid fa-xmark"></i></span>`;
+                                        } else {
+                                            btnStyle = "bg-slate-50 border-slate-100 text-slate-400 opacity-60";
+                                        }
+                                    }
+
+                                    return `
+                                        <button 
+                                            onclick="selectAnswer(${q.id}, ${idx})"
+                                            ${isAnswered ? 'disabled' : ''}
+                                            class="w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm flex items-center transition ${btnStyle}"
+                                        >
+                                            ${iconHtml}
+                                            <span class="flex-1">${opt.text}</span>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <!-- Detailed Explanation Box -->
+                            ${isAnswered ? `
+                                <div class="mt-4 p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs sm:text-sm text-emerald-950 animate-in fade-in duration-300">
+                                    <div class="flex items-center space-x-2 font-bold text-emerald-800 mb-1">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                        <span>Batafsil Izoh va Ilmiy Asos:</span>
+                                    </div>
+                                    <div class="leading-relaxed text-slate-700">${q.answerDetail}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Flashcards Mode
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            const filtered = questionsData.filter(q => currentCategory === 'all' || q.category === currentCategory);
+
+            container.innerHTML = filtered.map(q => {
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between space-y-4 hover:border-emerald-400 transition">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">${q.categoryName}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-base mb-2">${q.title}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">${q.question}</p>
+                        </div>
+
+                        <details class="group pt-3 border-t border-slate-100">
+                            <summary class="cursor-pointer text-xs font-bold text-emerald-600 group-open:text-emerald-800 flex items-center justify-between select-none">
+                                <span><i class="fa-solid fa-key mr-1"></i> Javobini Ko'rish</span>
+                                <i class="fa-solid fa-chevron-down transition transform group-open:rotate-180"></i>
+                            </summary>
+                            <div class="mt-3 p-3.5 bg-emerald-50 rounded-xl text-xs sm:text-sm text-emerald-950 leading-relaxed">
+                                ${q.answerDetail}
+                            </div>
+                        </details>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // User Selection Logic
+        function selectAnswer(qId, optIdx) {
+            userAnswers[qId] = optIdx;
+            updateGlobalScore();
+            renderQuiz();
+        }
+
+        // Update Score Count
+        function updateGlobalScore() {
+            let correctCount = 0;
+            Object.keys(userAnswers).forEach(qId => {
+                const q = questionsData.find(item => item.id == qId);
+                if(q && q.options[userAnswers[qId]].correct) {
+                    correctCount++;
+                }
+            });
+            document.getElementById('global-score').innerText = correctCount;
+        }
+
+        // Random Question Modal Logic
+        let currentRandomQ = null;
+        function toggleRandomQuestion() {
+            const randomIndex = Math.floor(Math.random() * questionsData.length);
+            currentRandomQ = questionsData[randomIndex];
+
+            document.getElementById('random-title').innerText = currentRandomQ.title;
+            document.getElementById('random-question').innerHTML = currentRandomQ.question;
+            document.getElementById('random-answer').innerHTML = currentRandomQ.answerDetail;
+            document.getElementById('random-answer-box').classList.add('hidden');
+            document.getElementById('random-reveal-btn').innerText = "Javobni Ko'rish";
+
+            document.getElementById('random-modal').classList.remove('hidden');
+        }
+
+        function toggleRandomAnswer() {
+            const box = document.getElementById('random-answer-box');
+            const btn = document.getElementById('random-reveal-btn');
+            if(box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                btn.innerText = "Yashirish";
+            } else {
+                box.classList.add('hidden');
+                btn.innerText = "Javobni Ko'rish";
+            }
+        }
+
+        function closeRandomModal() {
+            document.getElementById('random-modal').classList.add('hidden');
+        }
+
+        // Initial Initialization
+        window.onload = function() {
+            renderQuiz();
+            renderCards();
+        }
+    </script>
+</body>
+</html>
