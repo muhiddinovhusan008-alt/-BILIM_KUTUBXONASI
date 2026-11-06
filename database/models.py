@@ -67,6 +67,23 @@ async def update_user_profile(user_id: int, full_name: Optional[str] = None, gra
         await db.commit()
 
 
+async def is_user_subscribed_insta(user_id: int) -> bool:
+    """Foydalanuvchi Instagramga obuna bo'lganligini tekshiradi."""
+    async with get_db() as db:
+        cursor = await db.execute("SELECT is_subscribed_insta FROM users WHERE user_id = ?", (user_id,))
+        row = await cursor.fetchone()
+        if row and row["is_subscribed_insta"]:
+            return True
+        return False
+
+
+async def set_user_subscribed_insta(user_id: int):
+    """Foydalanuvchi Instagram obunasini tasdiqlangan deb belgilaydi."""
+    async with get_db() as db:
+        await db.execute("UPDATE users SET is_subscribed_insta = 1 WHERE user_id = ?", (user_id,))
+        await db.commit()
+
+
 # ==================== FANLAR ====================
 
 async def get_subjects(only_active: bool = True) -> List[Dict[str, Any]]:

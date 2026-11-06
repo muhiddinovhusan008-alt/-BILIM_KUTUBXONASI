@@ -11,7 +11,9 @@ from .inline_keyboards import (
     get_profile_keyboard,
     get_admin_main_keyboard,
     get_admin_cancel_keyboard,
-    get_back_keyboard
+    get_back_keyboard,
+    get_instagram_sub_keyboard,
+    get_contact_admin_keyboard
 )
 
 __all__ = [
@@ -28,5 +30,7 @@ __all__ = [
     "get_profile_keyboard",
     "get_admin_main_keyboard",
     "get_admin_cancel_keyboard",
-    "get_back_keyboard"
+    "get_back_keyboard",
+    "get_instagram_sub_keyboard",
+    "get_contact_admin_keyboard"
 ]

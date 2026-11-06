@@ -171,3 +171,26 @@ def get_back_keyboard(callback_data: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="🔙 Ortga", callback_data=callback_data)
     return builder.as_markup()
+
+
+INSTAGRAM_URL = "https://www.instagram.com/muh1dd1nov_ai?psln=eTdsMGtodmgxZXlz"
+ADMIN_USERNAME = "Muhiddinov_official"
+
+
+def get_instagram_sub_keyboard() -> InlineKeyboardMarkup:
+    """Instagram sahifaga obuna bo'lish tugmalari."""
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📲 Instagram sahifaga obuna bo'lish", url=INSTAGRAM_URL)
+    builder.button(text="✅ Obunani tasdiqlash", callback_data="check_insta_sub")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_contact_admin_keyboard() -> InlineKeyboardMarkup:
+    """Administratorga to'g'ridan-to'g'ri havola beruvchi inline klaviatura."""
+    builder = InlineKeyboardBuilder()
+    builder.button(text="💬 Administratorga yozish (@Muhiddinov_official)", url=f"https://t.me/{ADMIN_USERNAME}")
+    builder.button(text="🔙 Asosiy menyu", callback_data="back_to_main")
+    builder.adjust(1)
+    return builder.as_markup()
+

@@ -7,7 +7,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 
-from database import get_or_create_user, get_user, update_user_profile, get_user_rank
+from database import get_or_create_user, get_user, update_user_profile, get_user_rank, set_user_subscribed_insta
 from keyboards import (
     get_main_keyboard,
     get_cancel_keyboard,
@@ -21,6 +21,42 @@ from states import EditProfileStates
 from utils import is_admin, format_user_profile, escape_html
 
 router = Router()
+
+
+@router.callback_query(F.data == "check_insta_sub")
+async def process_insta_verification(call: CallbackQuery, state: FSMContext):
+    """Instagram obunasi tasdiqlanganda chaqiriladi."""
+    await state.clear()
+    user_id = call.from_user.id
+    full_name = call.from_user.full_name or "O'quvchi"
+
+    # Obunani bazada tasdiqlash
+    await set_user_subscribed_insta(user_id)
+    admin_flag = is_admin(user_id)
+
+    try:
+        await call.message.delete()
+    except Exception:
+        pass
+
+    welcome_text = (
+        f"🎉 <b>TABRIKLAYMIZ! OBUNANGIZ TASDIQLANDI!</b>\n\n"
+        f"Assalomu alaykum, <b>{escape_html(full_name)}</b>!\n\n"
+        f"<b>«BILIM KUTUBXONASI»</b> — zamonaviy o‘quv platformasiga xush kelibsiz! 🎓\n\n"
+        f"Bu yerda siz:\n"
+        f"📚 <i>Barcha fanlar bo‘yicha elektron darsliklar va kitoblarni o‘qishingiz;</i>\n"
+        f"📝 <i>Bilimingizni sinash uchun turli testlarni yechishingiz;</i>\n"
+        f"🏆 <i>O‘quvchilar o‘rtasida o‘z reytingingizni oshirishingiz;</i>\n"
+        f"💡 <i>Har kuni qiziqarli ilmiy faktlar va savollardan xabardor bo‘lishingiz mumkin.</i>\n\n"
+        f"O‘zingizga kerakli bo‘limni tanlang:"
+    )
+
+    await call.message.answer(
+        text=welcome_text,
+        reply_markup=get_main_keyboard(is_admin=admin_flag),
+        parse_mode="HTML"
+    )
+    await call.answer("✅ Obunangiz tasdiqlandi!")
 
 
 @router.message(CommandStart())
@@ -51,6 +87,7 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=get_main_keyboard(is_admin=admin_flag),
         parse_mode="HTML"
     )
+
 
 
 @router.message(Command("help"))

@@ -27,6 +27,7 @@ from config import (
 )
 from database import init_db
 from handlers import setup_routers
+from middlewares import InstagramSubscriptionMiddleware
 
 # Logging konfiguratsiyasi
 logging.basicConfig(
@@ -124,6 +125,11 @@ def create_bot_and_dispatcher():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     dp = Dispatcher(storage=MemoryStorage())
+
+    # Instagram obunasini tekshirish middleware'larini ulash
+    dp.message.middleware(InstagramSubscriptionMiddleware())
+    dp.callback_query.middleware(InstagramSubscriptionMiddleware())
+
     dp.include_router(setup_routers())
 
     # Startup va Shutdown ro'yxatdan o'tkazish

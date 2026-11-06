@@ -33,10 +33,17 @@ async def init_db():
                 grade TEXT DEFAULT 'Ko''rsatilmagan',
                 total_score INTEGER DEFAULT 0,
                 tests_count INTEGER DEFAULT 0,
+                is_subscribed_insta INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Eski bazalar uchun migratsiya
+        try:
+            await db.execute("ALTER TABLE users ADD COLUMN is_subscribed_insta INTEGER DEFAULT 0")
+        except Exception:
+            pass
 
         # 2. Fanlar jadvali
         await db.execute("""

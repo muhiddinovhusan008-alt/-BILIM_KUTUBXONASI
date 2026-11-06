@@ -6,7 +6,8 @@ from .models import (
     get_questions_by_subject, get_all_questions_by_subject, add_question, delete_question,
     save_test_result, get_top_users, get_weekly_top_users, get_most_active_users, get_user_rank,
     get_daily_fact, add_daily_fact, get_daily_question, add_daily_question, record_daily_answer, has_user_answered_daily,
-    get_bot_statistics, save_contact_message, get_all_user_ids
+    get_bot_statistics, save_contact_message, get_all_user_ids,
+    is_user_subscribed_insta, set_user_subscribed_insta
 )
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "get_questions_by_subject", "get_all_questions_by_subject", "add_question", "delete_question",
     "save_test_result", "get_top_users", "get_weekly_top_users", "get_most_active_users", "get_user_rank",
     "get_daily_fact", "add_daily_fact", "get_daily_question", "add_daily_question", "record_daily_answer", "has_user_answered_daily",
-    "get_bot_statistics", "save_contact_message", "get_all_user_ids"
+    "get_bot_statistics", "save_contact_message", "get_all_user_ids",
+    "is_user_subscribed_insta", "set_user_subscribed_insta"
 ]
